@@ -1,4 +1,14 @@
-﻿# Waygood Study Abroad Platform – Backend Assignment
+Backend-focused MERN assignment submission.
+
+Tech Stack:
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- JWT Authentication
+- Jest
+ 
+ # Waygood Study Abroad Platform – Backend Assignment
 
 This project is a backend-focused MERN assignment for a study-abroad platform inspired by Waygood's student discovery and application workflow ecosystem.
 
@@ -331,3 +341,5 @@ Potential future enhancements:
 - request logging
 - RBAC enhancements
 - frontend dashboard integration
+
+- 
