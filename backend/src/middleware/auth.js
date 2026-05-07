@@ -1,5 +1,4 @@
 ﻿const jwt = require("jsonwebtoken");
-
 const env = require("../config/env");
 const Student = require("../models/Student");
 const asyncHandler = require("../utils/asyncHandler");

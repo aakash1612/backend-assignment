@@ -8,18 +8,21 @@ function parseBoolean(value) {
 }
 
 const listPrograms = asyncHandler(async (req, res) => {
-  const {
-    country,
-    degreeLevel,
-    intake,
-    field,
-    q,
-    maxTuition,
-    scholarshipAvailable,
-    sortBy = "relevance",
-    page = 1,
-    limit = 10,
-  } = req.query;
+const {
+  country,
+  degreeLevel,
+  intake,
+  field,
+  q,
+  search,
+  minTuition,
+  maxTuition,
+  scholarshipAvailable,
+  sortBy = "tuitionFeeUsd",
+  sortOrder = "asc",
+  page = 1,
+  limit = 10,
+} = req.query;
 
   const filters = {};
 
@@ -38,36 +41,63 @@ const listPrograms = asyncHandler(async (req, res) => {
   if (intake) {
     filters.intakes = intake;
   }
+if (minTuition || maxTuition) {
+
+  filters.tuitionFeeUsd = {};
+
+  if (minTuition) {
+    filters.tuitionFeeUsd.$gte =
+      Number(minTuition);
+  }
 
   if (maxTuition) {
-    filters.tuitionFeeUsd = { $lte: Number(maxTuition) };
+    filters.tuitionFeeUsd.$lte =
+      Number(maxTuition);
   }
+}
 
   const scholarshipFlag = parseBoolean(scholarshipAvailable);
   if (typeof scholarshipFlag === "boolean") {
     filters.scholarshipAvailable = scholarshipFlag;
   }
 
-  if (q) {
-    filters.$or = [
-      { title: { $regex: q, $options: "i" } },
-      { universityName: { $regex: q, $options: "i" } },
-      { field: { $regex: q, $options: "i" } },
-    ];
-  }
+const searchTerm = search || q;
+
+if (searchTerm) {
+
+  filters.$or = [
+    {
+      title: {
+        $regex: searchTerm,
+        $options: "i",
+      },
+    },
+    {
+      universityName: {
+        $regex: searchTerm,
+        $options: "i",
+      },
+    },
+    {
+      field: {
+        $regex: searchTerm,
+        $options: "i",
+      },
+    },
+  ];
+}
 
   const pageNumber = Math.max(Number(page), 1);
   const pageSize = Math.min(Math.max(Number(limit), 1), 50);
 
-  const sortMap = {
-    tuitionAsc: { tuitionFeeUsd: 1 },
-    tuitionDesc: { tuitionFeeUsd: -1 },
-    relevance: { scholarshipAvailable: -1, tuitionFeeUsd: 1 },
-  };
+ const sortOptions = {};
+
+sortOptions[sortBy] =
+  sortOrder === "desc" ? -1 : 1;
 
   const [items, total] = await Promise.all([
     Program.find(filters)
-      .sort(sortMap[sortBy] || sortMap.relevance)
+      .sort(sortOptions)
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
       .lean(),
@@ -76,13 +106,17 @@ const listPrograms = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
+    count: items.length,
     data: items,
     meta: {
       page: pageNumber,
       limit: pageSize,
       total,
       totalPages: Math.ceil(total / pageSize),
-    },
+      hasNextPage:
+      pageNumber < Math.ceil(total / pageSize),
+      hasPrevPage: pageNumber > 1,
+},
   });
 });
 

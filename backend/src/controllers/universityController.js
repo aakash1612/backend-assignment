@@ -14,7 +14,8 @@ const listUniversities = asyncHandler(async (req, res) => {
     partnerType,
     q,
     scholarshipAvailable,
-    sortBy = "popular",
+    sortBy = "popularScore",
+    sortOrder = "desc",
     page = 1,
     limit = 10,
   } = req.query;
@@ -34,7 +35,9 @@ const listUniversities = asyncHandler(async (req, res) => {
     filters.scholarshipAvailable = scholarshipFlag;
   }
 
-  if (q) {
+  const searchTerm = search || q;
+
+   if (searchTerm) {
     filters.$or = [
       { name: { $regex: q, $options: "i" } },
       { country: { $regex: q, $options: "i" } },
@@ -46,15 +49,14 @@ const listUniversities = asyncHandler(async (req, res) => {
   const pageNumber = Math.max(Number(page), 1);
   const pageSize = Math.min(Math.max(Number(limit), 1), 50);
 
-  const sortMap = {
-    name: { name: 1 },
-    ranking: { qsRanking: 1, popularScore: -1 },
-    popular: { popularScore: -1, qsRanking: 1 },
-  };
+ const sortOptions = {};
+
+  sortOptions[sortBy] =
+  sortOrder === "desc" ? -1 : 1;
 
   const [items, total] = await Promise.all([
     University.find(filters)
-      .sort(sortMap[sortBy] || sortMap.popular)
+      .sort(sortOptions)
       .skip((pageNumber - 1) * pageSize)
       .limit(pageSize)
       .lean(),
@@ -63,13 +65,17 @@ const listUniversities = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
+    count: items.length,
     data: items,
     meta: {
-      page: pageNumber,
-      limit: pageSize,
-      total,
-      totalPages: Math.ceil(total / pageSize),
-    },
+        page: pageNumber,
+        limit: pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+        hasNextPage:
+        pageNumber < Math.ceil(total / pageSize),
+        hasPrevPage: pageNumber > 1,
+},
   });
 });
 

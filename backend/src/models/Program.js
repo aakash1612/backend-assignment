@@ -72,4 +72,10 @@ programSchema.index({
   tuitionFeeUsd: 1,
 });
 
+programSchema.index({
+  title: "text",
+  universityName: "text",
+  field: "text",
+});
+
 module.exports = mongoose.model("Program", programSchema);
