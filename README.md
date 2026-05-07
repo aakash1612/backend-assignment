@@ -1,4 +1,4 @@
-Backend-focused MERN assignment submission.
+Backend-focused MERN assignment submission by ""Akash Varshney""
 
 Tech Stack:
 - Node.js
@@ -235,7 +235,7 @@ In production, these could be enhanced further using:
 ## 1. Clone Repository
 
 ```bash
-git clone <repository-url>
+git clone (https://github.com/aakash1612/backend-assignment)
 cd backend
 ```
 
